@@ -1,0 +1,63 @@
+# ============================================
+# AWS Configuration
+# ============================================
+aws_region = "us-east-1"
+
+# ============================================
+# Project Configuration
+# ============================================
+project_name = "cloud-learning-platform"
+environment  = "dev"
+
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# ============================================
+# Network Configuration
+# ============================================
+vpc_cidr = "10.0.0.0/16"
+
+# ============================================
+# EC2 Configuration
+# ============================================
+# Create an SSH key pair in AWS and specify the name here
+ec2_key_name = "" # e.g., "my-key-pair"
+
+# Instance types - optimized for cost
+nginx_instance_type = "t3.micro"  # ~$7.5/month
+app_instance_type   = "t3.small"  # ~$15/month each
+kafka_instance_type = "t3.small"  # ~$15/month
+
+kafka_ebs_volume_size = 30 # GB for Kafka logs
+
+# ============================================
+# RDS Configuration
+# ============================================
+db_instance_class     = "db.t3.micro" # ~$12-15/month
+db_allocated_storage  = 20             # GB
+db_name               = "platform_main"
+db_username           = "postgres"
+db_password           = "CHANGE_ME_PLEASE" # Use a strong password!
+
+# ============================================
+# Cost Optimization
+# ============================================
+enable_nat_gateway  = true
+single_nat_gateway  = true # Use single NAT GW to save cost (~$32/month vs $64/month)
+enable_s3_lifecycle = true
+
+# ============================================
+# Security Configuration
+# ============================================
+# WARNING: "0.0.0.0/0" allows access from anywhere
+# In production, restrict to your IP or VPN CIDR
+allowed_ssh_cidr_blocks = ["0.0.0.0/0"]
+
+# ============================================
+# Additional Tags
+# ============================================
+additional_tags = {
+  Team       = "CSE363"
+  Course     = "Cloud Computing"
+  CostCenter = "Education"
+}
+
