@@ -802,7 +802,9 @@ sudo cat /var/log/user-data-complete.log
 ## 🤝 Contributing
 
 This is a student project for CSE363. Team members:
-- [Your Team Member Names]
+- Abdelrahman Amr Mohamed
+- Omnia Adel Saber
+- Raghad Mohamed Ahmed
 
 ---
 
