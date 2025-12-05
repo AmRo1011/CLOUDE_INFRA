@@ -14,7 +14,7 @@ services:
 
   # Document Service
   document:
-    image: amro1/document:phase2fix
+    image: amro1/document:phase2ssl
     container_name: platform-document
     restart: unless-stopped
     ports:
@@ -53,7 +53,7 @@ services:
 
   # Quiz Service
   quiz:
-    image: amro1/quiz:phase2fix
+    image: amro1/quiz:phase2ssl
     container_name: platform-quiz
     restart: unless-stopped
     ports:

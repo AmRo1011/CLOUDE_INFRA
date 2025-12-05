@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Create async engine with schema configuration
-connect_args = {}
+connect_args = {
+    "ssl": "require"  # Force SSL/TLS for AWS RDS
+}
 if settings.DB_SCHEMA:
     connect_args["server_settings"] = {"search_path": settings.DB_SCHEMA}
 
