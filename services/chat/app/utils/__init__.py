@@ -1,0 +1,7 @@
+"""
+Utility functions for Chat Service
+"""
+from app.utils.auth import get_current_user
+
+__all__ = ["get_current_user"]
+

@@ -1,0 +1,122 @@
+# =============================================================================
+# Docker Compose - AWS EC2 Deployment
+# =============================================================================
+# Runs application services on AWS EC2 instances
+# Infrastructure (RDS, S3, Kafka) is managed by Terraform
+# Usage: docker-compose -f docker-compose.aws.yml up -d
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # App Node 1 Services: User Management + Chat
+  # Deploy this compose file to App Node 1 EC2 instance
+  # ===========================================================================
+
+  # User Management Service
+  user-mgmt:
+    image: amro1/user-mgmt:phase2
+    container_name: platform-user-mgmt
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${USER_MGMT_DB_USER}:${USER_MGMT_DB_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}
+      - DB_SCHEMA=user_mgmt
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - JWT_EXPIRATION_HOURS=${JWT_EXPIRATION_HOURS:-24}
+      - S3_BUCKET=${USER_MGMT_S3_BUCKET}
+      - S3_ENDPOINT_URL=
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - SERVICE_NAME=user-mgmt
+      - SERVICE_PORT=8001
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - platform-network
+
+  # Chat Service
+  chat:
+    image: amro1/chat:phase2
+    container_name: platform-chat
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${CHAT_DB_USER}:${CHAT_DB_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}
+      - DB_SCHEMA=chat
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - USER_MGMT_URL=http://user-mgmt:8001
+      - SERVICE_NAME=chat
+      - SERVICE_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      user-mgmt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - platform-network
+
+# ===========================================================================
+# Networks
+# ===========================================================================
+networks:
+  platform-network:
+    driver: bridge
+
+# =============================================================================
+# NOTE: For App Node 2, create a separate compose file or use profiles
+# =============================================================================
+# App Node 2 should run: Document Service + Quiz Service
+# 
+# document:
+#   image: amro1/document:phase2
+#   ports:
+#     - "8002:8002"
+#   environment:
+#     - DATABASE_URL=postgresql+asyncpg://${DOCUMENT_DB_USER}:${DOCUMENT_DB_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}
+#     - DB_SCHEMA=document
+#     - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+#     - S3_BUCKET=${DOCUMENT_S3_BUCKET}
+#     - AWS_REGION=${AWS_REGION}
+#     ...
+#
+# quiz:
+#   image: amro1/quiz:phase2
+#   ports:
+#     - "8003:8003"
+#   environment:
+#     - DATABASE_URL=postgresql+asyncpg://${QUIZ_DB_USER}:${QUIZ_DB_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}
+#     - DB_SCHEMA=quiz
+#     - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+#     - S3_BUCKET=${QUIZ_S3_BUCKET}
+#     - AWS_REGION=${AWS_REGION}
+#     ...
+# =============================================================================
+

@@ -1,0 +1,259 @@
+# =============================================================================
+# Docker Compose - Local Development
+# =============================================================================
+# Runs all services locally for development and testing
+# Usage: docker-compose -f docker-compose.local.yml up
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Infrastructure Services (Local Development Only)
+  # ===========================================================================
+  
+  # PostgreSQL Database (replaces RDS for local dev)
+  postgres:
+    image: postgres:15-alpine
+    container_name: platform-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdevpassword
+      POSTGRES_DB: platform_main
+    ports:
+      - "5433:5432"  # Using 5433 externally to avoid conflict with local PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - platform-network
+
+  # Apache Kafka + Zookeeper (replaces EC2 Kafka for local dev)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: platform-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - platform-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: platform-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - platform-network
+
+  # LocalStack for S3 (replaces AWS S3 for local dev)
+  localstack:
+    image: localstack/localstack:latest
+    container_name: platform-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=0
+      - PERSISTENCE=0
+    networks:
+      - platform-network
+
+  # ===========================================================================
+  # Application Services
+  # ===========================================================================
+
+  # User Management Service
+  user-mgmt:
+    build:
+      context: ../services/user-mgmt
+      dockerfile: Dockerfile
+    container_name: platform-user-mgmt
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:localdevpassword@postgres:5432/platform_main
+      - DB_SCHEMA=user_mgmt
+      - JWT_SECRET=local-dev-secret-change-in-production
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRATION_HOURS=24
+      - S3_BUCKET=user-management-storage
+      - S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - SERVICE_NAME=user-mgmt
+      - SERVICE_PORT=8001
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - platform-network
+
+  # Chat Service
+  chat:
+    build:
+      context: ../services/chat
+      dockerfile: Dockerfile
+    container_name: platform-chat
+    ports:
+      - "8004:8000"  # Using 8004 externally to avoid conflict
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:localdevpassword@postgres:5432/platform_main
+      - DB_SCHEMA=chat
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - USER_MGMT_URL=http://user-mgmt:8001
+      - SERVICE_NAME=chat
+      - SERVICE_PORT=8000
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      user-mgmt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - platform-network
+
+  # Document Service
+  document:
+    build:
+      context: ../services/document
+      dockerfile: Dockerfile
+    container_name: platform-document
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:localdevpassword@postgres:5432/platform_main
+      - DB_SCHEMA=document
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - S3_BUCKET=document-service-storage
+      - S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - USER_MGMT_URL=http://user-mgmt:8001
+      - SERVICE_NAME=document
+      - SERVICE_PORT=8002
+      - LOG_LEVEL=DEBUG
+      - MAX_UPLOAD_SIZE_MB=50
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+      user-mgmt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - platform-network
+
+  # Quiz Service
+  quiz:
+    build:
+      context: ../services/quiz
+      dockerfile: Dockerfile
+    container_name: platform-quiz
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:localdevpassword@postgres:5432/platform_main
+      - DB_SCHEMA=quiz
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - S3_BUCKET=quiz-service-storage
+      - S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - USER_MGMT_URL=http://user-mgmt:8001
+      - SERVICE_NAME=quiz
+      - SERVICE_PORT=8003
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+      user-mgmt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - platform-network
+
+  # Nginx Gateway (optional for local, simulates production routing)
+  nginx:
+    image: nginx:alpine
+    container_name: platform-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - user-mgmt
+      - chat
+      - document
+      - quiz
+    networks:
+      - platform-network
+
+# ===========================================================================
+# Networks
+# ===========================================================================
+networks:
+  platform-network:
+    driver: bridge
+
+# ===========================================================================
+# Volumes
+# ===========================================================================
+volumes:
+  postgres_data:
+
