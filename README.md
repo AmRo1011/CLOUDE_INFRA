@@ -4,12 +4,39 @@
 [![AWS](https://img.shields.io/badge/AWS-Infrastructure-FF9900?logo=amazon-aws)](https://aws.amazon.com/)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker)](https://www.docker.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-RDS-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Kafka](https://img.shields.io/badge/Kafka-3.9.0-231F20?logo=apache-kafka)](https://kafka.apache.org/)
 [![Status](https://img.shields.io/badge/Status-Live%20&%20Healthy-success)]()
 
 > **CSE363 Cloud Computing Project**  
 > ✅ **Phase 1**: AWS Infrastructure (Completed)  
 > ✅ **Phase 2**: Microservices Deployment (Completed)  
-> 🚀 **Status**: All services running and healthy on AWS
+> 🎉 **Kafka Integration**: Event-driven architecture fully operational  
+> 🚀 **Status**: All services running and healthy on AWS  
+> 📅 **Deployment Date**: December 5, 2025
+
+---
+
+## 🎊 **Current System Status**
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  🟢 ALL SYSTEMS OPERATIONAL (as of December 5, 2025)          │
+├────────────────────────────────────────────────────────────────┤
+│  ✅ 4 Microservices: Running with health checks passing       │
+│  ✅ Kafka Cluster: 3.9.0 operational (6 topics, 18 partitions)│
+│  ✅ PostgreSQL RDS: SSL-enabled with schema isolation         │
+│  ✅ S3 Storage: 3 buckets configured and accessible           │
+│  ✅ Event Integration: All services connected to Kafka        │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**📖 Quick Links:**
+- 🚀 [Deployment Success Summary](DEPLOYMENT_SUCCESS.md)
+- 🔍 [Health Check Scripts](#quick-health-check)
+- 📚 [Complete API Reference](docs/ALL_APIS_REFERENCE.md)
+- 🐳 [Docker Images on Docker Hub](https://hub.docker.com/u/amro1)
+
+---
 
 ## 📋 Table of Contents
 
@@ -52,12 +79,19 @@ This project implements a **cost-optimized, production-ready AWS infrastructure*
 
 All microservices are **deployed and operational** on AWS infrastructure:
 
-| Service | Node | Status | Health Endpoint | Port |
-|---------|------|--------|----------------|------|
-| **User Management** | App Node 1 | ✅ Healthy | `http://34.201.26.16:8001/health` | 8001 |
-| **Chat Service** | App Node 1 | ✅ Healthy | `http://34.201.26.16:8000/health` | 8000 |
-| **Document Service** | App Node 2 | ✅ Healthy | `http://23.23.26.86:8002/health` | 8002 |
-| **Quiz Service** | App Node 2 | ✅ Healthy | `http://23.23.26.86:8003/health` | 8003 |
+| Service | Node | Status | Internal Endpoint | Port |
+|---------|------|--------|------------------|------|
+| **User Management** | App Node 1 | ✅ Healthy | `http://10.0.1.195:8001/health` | 8001 |
+| **Chat Service** | App Node 1 | ✅ Healthy | `http://10.0.1.195:8000/health` | 8000 |
+| **Document Service** | App Node 2 | ✅ Healthy | `http://10.0.2.179:8002/health` | 8002 |
+| **Quiz Service** | App Node 2 | ✅ Healthy | `http://10.0.2.179:8003/health` | 8003 |
+
+### Kafka Infrastructure
+
+| Component | Status | Endpoint | Details |
+|-----------|--------|----------|---------|
+| **Kafka Broker** | ✅ Running | `10.0.10.231:9092` | v3.9.0, 6 topics active |
+| **Zookeeper** | ✅ Running | `10.0.10.231:2181` | Coordination service |
 
 ### Infrastructure Status
 
@@ -68,26 +102,64 @@ All microservices are **deployed and operational** on AWS infrastructure:
 - ✅ **Security Groups** - Configured with least-privilege access
 - ✅ **Docker Containers** - All services containerized and running
 - ✅ **Database Schemas** - Schema isolation implemented (user_mgmt, chat, document, quiz)
-- ⏸️ **Kafka** - Infrastructure ready (not configured yet)
+- ✅ **Kafka Cluster** - Kafka 3.9.0 running with 6 topics (3 partitions each)
+- ✅ **Event Integration** - All services connected to Kafka for event-driven communication
 
 ### Quick Health Check
 
+**Option 1: Automated Health Check Script**
+
+```powershell
+# Windows PowerShell
+.\deploy\scripts\full-health-check.ps1
+```
+
 ```bash
-# Test all services
-curl http://34.201.26.16:8001/health  # User Management
-curl http://34.201.26.16:8000/health  # Chat
-curl http://23.23.26.86:8002/health   # Document
-curl http://23.23.26.86:8003/health   # Quiz
+# Linux/Mac
+bash deploy/scripts/full-health-check.sh
+```
+
+**Option 2: Manual Health Checks**
+
+```bash
+# From within VPC (SSH to Nginx node first)
+curl http://10.0.1.195:8001/health  # User Management
+curl http://10.0.1.195:8000/health  # Chat
+curl http://10.0.2.179:8002/health  # Document
+curl http://10.0.2.179:8003/health  # Quiz
+
+# Test Kafka connectivity
+nc -zv 10.0.10.231 9092  # Kafka broker
+nc -zv 10.0.10.231 2181  # Zookeeper
+```
+
+**Option 3: PowerShell Direct Test**
+
+```powershell
+# From your local machine (if VPN/tunnel configured)
+Invoke-RestMethod http://10.0.1.195:8001/health
+Invoke-RestMethod http://10.0.1.195:8000/health
+Invoke-RestMethod http://10.0.2.179:8002/health
+Invoke-RestMethod http://10.0.2.179:8003/health
 ```
 
 ### Deployment Timeline
 
 - ✅ **Phase 1 (Nov 2025)**: Infrastructure provisioning with Terraform
+  - VPC, subnets, routing, and security groups
+  - EC2 instances for Nginx, App Nodes, and Kafka
+  - RDS PostgreSQL with multi-schema design
+  - S3 buckets for object storage
+
 - ✅ **Phase 2 (Dec 2025)**: Microservices containerization and deployment
+  - Four microservices implemented (User-Mgmt, Chat, Document, Quiz)
   - Docker images built and pushed to Docker Hub
   - Services deployed to EC2 with docker-compose
-  - Database connections established with SSL
-  - Health checks verified
+  - Database connections established with SSL/TLS
+  - Kafka 3.9.0 installed and configured
+  - 6 event topics created (document.uploaded, document.processed, notes.generated, quiz.requested, quiz.generated, chat.message)
+  - All services integrated with Kafka for event-driven architecture
+  - Health checks verified and monitoring scripts created
 
 ---
 
@@ -469,10 +541,22 @@ See detailed analysis in [docs/cost_analysis.md](docs/cost_analysis.md)
 
 - ✅ Each service has dedicated S3 bucket (where needed)
 - ✅ Each service has dedicated PostgreSQL schema
-- ✅ Services communicate via Kafka events (infrastructure ready)
+- ✅ Services communicate via Kafka events (fully integrated)
 - ✅ No direct database or storage access between services
 - ✅ Containerized with Docker for consistency and portability
 - ✅ SSL/TLS encryption for RDS connections
+- ✅ Event-driven architecture with 6 Kafka topics
+
+### Kafka Topics
+
+| Topic | Partitions | Producer | Consumer | Purpose |
+|-------|-----------|----------|----------|---------|
+| `document.uploaded` | 3 | Document Service | Quiz Service | Document upload notifications |
+| `document.processed` | 3 | Document Service | Chat Service | Processing completion events |
+| `notes.generated` | 3 | Document Service | Chat Service | AI-generated notes available |
+| `quiz.requested` | 3 | Quiz Service | Document Service | Quiz generation requests |
+| `quiz.generated` | 3 | Quiz Service | Chat Service | Quiz ready notifications |
+| `chat.message` | 3 | Chat Service | Analytics (future) | Chat activity tracking |
 
 ### Docker Images
 
@@ -697,23 +781,33 @@ GRANT ALL ON SCHEMA chat TO chat_svc;
 -- Repeat for other services
 ```
 
-#### 5. Verify Kafka Topics
+#### 5. Verify Kafka Topics ✅ COMPLETED
 
 ```bash
-# SSH to Kafka node (through bastion)
-ssh -i your-key.pem ec2-user@<kafka-private-ip>
+# SSH to Kafka node (via Nginx jump host)
+ssh -i your-key.pem -J ec2-user@<nginx-public-ip> ec2-user@10.0.10.231
 
 # List topics
-/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+cd /opt/kafka
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
-# Should see:
-# - document.uploaded
-# - document.processed
-# - notes.generated
-# - quiz.requested
-# - quiz.generated
-# - chat.message
-# (and others)
+# Verify all topics created:
+# ✅ chat.message
+# ✅ document.processed
+# ✅ document.uploaded
+# ✅ notes.generated
+# ✅ quiz.generated
+# ✅ quiz.requested
+
+# Check topic details
+bin/kafka-topics.sh --describe --bootstrap-server localhost:9092
+
+# Test producer/consumer
+echo "Test message" | bin/kafka-console-producer.sh \
+  --bootstrap-server localhost:9092 --topic chat.message
+
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+  --topic chat.message --from-beginning --max-messages 1
 ```
 
 ---
@@ -949,6 +1043,9 @@ sudo cat /var/log/user-data-complete.log
 
 ## 📚 Additional Documentation
 
+### Deployment Status
+- ⭐ **[DEPLOYMENT_SUCCESS.md](DEPLOYMENT_SUCCESS.md)** - Complete deployment summary with all endpoints and status
+
 ### Phase 1 Documentation
 - [Database Decision](docs/database_decision.md) - PostgreSQL vs MongoDB analysis
 - [Cost Analysis](docs/cost_analysis.md) - Detailed cost breakdown and optimization
@@ -962,6 +1059,11 @@ sudo cat /var/log/user-data-complete.log
 - [Deployment Guide](docs/deployment_phase2.md) - Step-by-step deployment instructions
 - [Testing Checklist](docs/phase2_testing_checklist.md) - Comprehensive testing guide
 
+### Operational Scripts
+- `deploy/scripts/full-health-check.ps1` - Windows health check automation
+- `deploy/scripts/full-health-check.sh` - Linux/Mac health check automation
+- `deploy/scripts/redeploy-aws.sh` - Quick service redeployment
+
 ---
 
 ## 🎯 Project Milestones
@@ -973,14 +1075,32 @@ sudo cat /var/log/user-data-complete.log
   - S3 buckets for object storage
   - Security groups and network policies
   
-- ✅ **Phase 2 (Dec 2025)**: Microservices Deployment
-  - 4 microservices implemented (User-Mgmt, Chat, Document, Quiz)
-  - Docker containerization with multi-stage builds
-  - Docker Hub image registry
-  - Production deployment on AWS EC2
-  - Database connections with SSL/TLS
-  - Health checks and monitoring
-  - Complete API documentation
+- ✅ **Phase 2 (Dec 5, 2025)**: Microservices Deployment - **COMPLETE**
+  - ✅ 4 microservices implemented (User-Mgmt, Chat, Document, Quiz)
+  - ✅ Docker containerization with multi-stage builds
+  - ✅ Docker Hub image registry (amro1/* images)
+  - ✅ Production deployment on AWS EC2
+  - ✅ Database connections with SSL/TLS (asyncpg driver)
+  - ✅ Kafka 3.9.0 cluster setup and configuration
+  - ✅ 6 Kafka topics created (3 partitions each)
+  - ✅ Event-driven integration across all services
+  - ✅ Health checks and monitoring scripts
+  - ✅ Complete API documentation with examples
+  - ✅ Deployment automation scripts
+
+### Current System Status (Dec 5, 2025)
+
+🎉 **ALL SERVICES OPERATIONAL**
+
+- **User Management**: ✅ Running, Kafka Connected, DB Connected
+- **Chat Service**: ✅ Running, Kafka Connected, DB Connected
+- **Document Service**: ✅ Running, Kafka Connected, DB Connected
+- **Quiz Service**: ✅ Running, Kafka Connected, DB Connected
+- **Kafka Broker**: ✅ Running (10.0.10.231:9092)
+- **PostgreSQL RDS**: ✅ Running with SSL
+- **S3 Buckets**: ✅ Accessible
+
+📊 See **[DEPLOYMENT_SUCCESS.md](DEPLOYMENT_SUCCESS.md)** for complete status and testing instructions.
 
 ---
 
