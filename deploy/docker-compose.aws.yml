@@ -14,7 +14,7 @@ services:
 
   # User Management Service
   user-mgmt:
-    image: amro1/user-mgmt:phase2
+    image: amro1/user-mgmt:phase2fix
     container_name: platform-user-mgmt
     restart: unless-stopped
     ports:
@@ -50,7 +50,7 @@ services:
 
   # Chat Service
   chat:
-    image: amro1/chat:phase2
+    image: amro1/chat:phase2fix
     container_name: platform-chat
     restart: unless-stopped
     ports:
