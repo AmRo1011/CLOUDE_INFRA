@@ -153,7 +153,16 @@ resource "aws_security_group" "kafka" {
     self        = true
   }
 
-  # SSH (for management)
+  # SSH from Nginx (bastion/jump host)
+  ingress {
+    description     = "SSH from Nginx bastion"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.nginx.id]
+  }
+
+  # SSH (for management from internet - optional)
   ingress {
     description = "SSH access"
     from_port   = 22
