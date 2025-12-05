@@ -1,18 +1,24 @@
-# Cloud-Based Learning Platform - Infrastructure (Phase 1)
+# Cloud-Based Learning Platform - Full Stack Deployment ✅
 
 [![Terraform](https://img.shields.io/badge/Terraform-≥1.5.0-623CE4?logo=terraform)](https://www.terraform.io/)
 [![AWS](https://img.shields.io/badge/AWS-Infrastructure-FF9900?logo=amazon-aws)](https://aws.amazon.com/)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-RDS-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Status](https://img.shields.io/badge/Status-Live%20&%20Healthy-success)]()
 
-> **CSE363 Cloud Computing Project** - Phase 1: AWS Infrastructure Layer  
-> **Deadline**: Thursday, 20/11/2025
+> **CSE363 Cloud Computing Project**  
+> ✅ **Phase 1**: AWS Infrastructure (Completed)  
+> ✅ **Phase 2**: Microservices Deployment (Completed)  
+> 🚀 **Status**: All services running and healthy on AWS
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [🎉 Deployment Status](#-deployment-status)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
+- [Quick Start (Phase 1 + 2)](#quick-start-phase-1--2)
 - [Cost Analysis](#cost-analysis)
 - [Services Overview](#services-overview)
 - [Database Strategy](#database-strategy)
@@ -37,6 +43,51 @@ This project implements a **cost-optimized, production-ready AWS infrastructure*
 ✅ **Cost-Optimized** - Dev configuration under $50/month (see [Cost Analysis](docs/cost_analysis.md))  
 ✅ **Scalable** - Designed to scale from dev to production  
 ✅ **Well-Documented** - Comprehensive documentation and inline comments  
+
+---
+
+## 🎉 Deployment Status
+
+### Live Services (AWS EC2)
+
+All microservices are **deployed and operational** on AWS infrastructure:
+
+| Service | Node | Status | Health Endpoint | Port |
+|---------|------|--------|----------------|------|
+| **User Management** | App Node 1 | ✅ Healthy | `http://34.201.26.16:8001/health` | 8001 |
+| **Chat Service** | App Node 1 | ✅ Healthy | `http://34.201.26.16:8000/health` | 8000 |
+| **Document Service** | App Node 2 | ✅ Healthy | `http://23.23.26.86:8002/health` | 8002 |
+| **Quiz Service** | App Node 2 | ✅ Healthy | `http://23.23.26.86:8003/health` | 8003 |
+
+### Infrastructure Status
+
+- ✅ **AWS VPC** - Fully configured with public/private subnets
+- ✅ **EC2 Instances** - 4 instances running (Nginx, 2x App Nodes, Kafka)
+- ✅ **RDS PostgreSQL** - Running with SSL/TLS encryption
+- ✅ **S3 Buckets** - 3 buckets created and accessible
+- ✅ **Security Groups** - Configured with least-privilege access
+- ✅ **Docker Containers** - All services containerized and running
+- ✅ **Database Schemas** - Schema isolation implemented (user_mgmt, chat, document, quiz)
+- ⏸️ **Kafka** - Infrastructure ready (not configured yet)
+
+### Quick Health Check
+
+```bash
+# Test all services
+curl http://34.201.26.16:8001/health  # User Management
+curl http://34.201.26.16:8000/health  # Chat
+curl http://23.23.26.86:8002/health   # Document
+curl http://23.23.26.86:8003/health   # Quiz
+```
+
+### Deployment Timeline
+
+- ✅ **Phase 1 (Nov 2025)**: Infrastructure provisioning with Terraform
+- ✅ **Phase 2 (Dec 2025)**: Microservices containerization and deployment
+  - Docker images built and pushed to Docker Hub
+  - Services deployed to EC2 with docker-compose
+  - Database connections established with SSL
+  - Health checks verified
 
 ---
 
@@ -134,48 +185,74 @@ This project implements a **cost-optimized, production-ready AWS infrastructure*
 ```
 .
 ├── README.md                          # This file
-├── terraform/                         # Terraform infrastructure code
+│
+├── terraform/                         # Phase 1: Infrastructure as Code
 │   ├── main.tf                       # Root module - orchestrates all resources
 │   ├── variables.tf                  # Variable definitions
 │   ├── outputs.tf                    # Output values
 │   ├── providers.tf                  # Provider configuration
 │   ├── terraform.tfvars.example      # Example variables file
-│   ├── .gitignore                    # Terraform gitignore
 │   │
 │   ├── modules/                      # Reusable Terraform modules
 │   │   ├── vpc/                      # VPC, subnets, routing
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
-│   │   │
 │   │   ├── security/                 # Security groups
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
-│   │   │
 │   │   ├── ec2_instance/             # Generic EC2 instance
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
-│   │   │
 │   │   ├── rds_postgres/             # RDS PostgreSQL
-│   │   │   ├── main.tf
-│   │   │   ├── variables.tf
-│   │   │   └── outputs.tf
-│   │   │
 │   │   └── s3_bucket/                # S3 bucket with policies
-│   │       ├── main.tf
-│   │       ├── variables.tf
-│   │       └── outputs.tf
 │   │
 │   └── templates/                    # User data templates
 │       ├── user_data_nginx.sh        # Nginx setup script
 │       ├── user_data_app.sh          # Application node setup
 │       └── user_data_kafka.sh        # Kafka/Zookeeper setup
 │
+├── services/                          # Phase 2: Microservices
+│   ├── user-mgmt/                    # User Management Service
+│   │   ├── app/                      # FastAPI application
+│   │   │   ├── main.py               # Application entry point
+│   │   │   ├── config.py             # Configuration management
+│   │   │   ├── database.py           # Database connection with SSL
+│   │   │   ├── models/               # SQLAlchemy models
+│   │   │   ├── routers/              # API endpoints
+│   │   │   ├── schemas/              # Pydantic schemas
+│   │   │   └── services/             # Business logic
+│   │   ├── Dockerfile                # Container definition
+│   │   ├── requirements.txt          # Python dependencies
+│   │   └── tests/                    # Unit tests
+│   │
+│   ├── chat/                         # Chat Service (same structure)
+│   ├── document/                     # Document Service (same structure)
+│   └── quiz/                         # Quiz Service (same structure)
+│
+├── deploy/                            # Deployment configurations
+│   ├── docker-compose.local.yml      # Local development
+│   ├── docker-compose.aws.yml        # AWS App Node 1 (User-Mgmt + Chat)
+│   ├── docker-compose.aws-node2.yml  # AWS App Node 2 (Document + Quiz)
+│   ├── nginx/
+│   │   ├── nginx-local.conf          # Local Nginx config
+│   │   └── nginx.conf                # AWS Nginx config
+│   ├── env/                          # Environment files
+│   │   ├── *.env.example             # Example env files
+│   │   └── *.aws.env                 # AWS env files (git-ignored)
+│   ├── init-db.sql                   # Database initialization
+│   └── scripts/                      # Deployment scripts
+│       ├── deploy-local.sh
+│       ├── deploy-aws.sh
+│       ├── health-check.sh
+│       └── redeploy-aws.sh
+│
+├── .github/                           # CI/CD
+│   └── workflows/
+│       └── ci.yml                    # GitHub Actions workflow
+│
 └── docs/                             # Documentation
-    ├── database_decision.md          # PostgreSQL vs MongoDB analysis
-    ├── cost_analysis.md              # Detailed cost breakdown
+    ├── phase2_overview.md            # Phase 2 architecture
+    ├── api_contracts_phase2.md       # API specifications
+    ├── kafka_contracts_phase2.md     # Kafka message schemas
+    ├── deployment_phase2.md          # Deployment guide
+    ├── phase2_testing_checklist.md   # Testing procedures
+    ├── ALL_APIS_REFERENCE.md         # Complete API reference
+    ├── database_decision.md          # PostgreSQL analysis
+    ├── cost_analysis.md              # Cost breakdown
     └── operations.md                 # Operational procedures
 ```
 
@@ -219,7 +296,7 @@ This project implements a **cost-optimized, production-ready AWS infrastructure*
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Phase 1 + 2)
 
 ### 1. Clone Repository
 
@@ -312,6 +389,41 @@ curl http://$NGINX_IP/health
 ssh -i your-key.pem ec2-user@$NGINX_IP
 ```
 
+### 10. Deploy Phase 2 Microservices (Optional - Already Deployed)
+
+**Phase 2 is already deployed and running!** But if you need to redeploy:
+
+```bash
+# SSH to App Node 1
+ssh -i your-key.pem ec2-user@34.201.26.16
+
+# Clone repository
+cd ~
+git clone https://github.com/AmRo1011/CLOUDE_INFRA.git cloud
+cd cloud
+git checkout phase-2
+
+# Set environment variables
+export USER_MGMT_DB_PASSWORD='YOUR_RDS_PASSWORD'
+export CHAT_DB_PASSWORD='YOUR_RDS_PASSWORD'
+export RDS_ENDPOINT="YOUR_RDS_ENDPOINT"
+export RDS_PORT="5432"
+export RDS_DATABASE="platform_main"
+# ... (see deploy/env/*.aws.env for complete list)
+
+# Deploy services
+cd deploy
+docker-compose -f docker-compose.aws.yml up -d
+
+# Verify
+curl http://localhost:8001/health  # User Management
+curl http://localhost:8000/health  # Chat
+```
+
+**Repeat similar steps on App Node 2 for Document and Quiz services.**
+
+See [docs/deployment_phase2.md](docs/deployment_phase2.md) for detailed instructions.
+
 ---
 
 ## 💰 Cost Analysis
@@ -357,17 +469,61 @@ See detailed analysis in [docs/cost_analysis.md](docs/cost_analysis.md)
 
 - ✅ Each service has dedicated S3 bucket (where needed)
 - ✅ Each service has dedicated PostgreSQL schema
-- ✅ Services communicate via Kafka events only
+- ✅ Services communicate via Kafka events (infrastructure ready)
 - ✅ No direct database or storage access between services
+- ✅ Containerized with Docker for consistency and portability
+- ✅ SSL/TLS encryption for RDS connections
+
+### Docker Images
+
+All services are containerized and available on Docker Hub:
+
+- `amro1/user-mgmt:phase2ssl` - User Management Service
+- `amro1/chat:phase2ssl` - Chat Service
+- `amro1/document:phase2ssl` - Document Service
+- `amro1/quiz:phase2ssl` - Quiz Service
+
+**Key Features:**
+- Multi-stage builds for optimized image size
+- Non-root user for security
+- Health checks included
+- PostgreSQL async driver (asyncpg) with SSL support
 
 ### API Gateway (Nginx)
 
 **Endpoints:**
-- `/api/auth/*` → User Management Service
-- `/api/users/*` → User Management Service
-- `/api/chat/*` → Chat Service
-- `/api/documents/*` → Document Service
-- `/api/quiz/*` → Quiz Service
+- `/api/auth/*` → User Management Service (port 8001)
+- `/api/users/*` → User Management Service (port 8001)
+- `/api/chat/*` → Chat Service (port 8000)
+- `/api/documents/*` → Document Service (port 8002)
+- `/api/quiz/*` → Quiz Service (port 8003)
+
+### API Documentation
+
+For complete API reference with request/response examples, see:
+- **[ALL_APIS_REFERENCE.md](docs/ALL_APIS_REFERENCE.md)** - Complete API documentation
+- **[api_contracts_phase2.md](docs/api_contracts_phase2.md)** - Detailed API contracts
+
+**Quick API Test:**
+```bash
+# Register a new user
+curl -X POST http://34.201.26.16:8001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "Test123!",
+    "full_name": "Test User"
+  }'
+
+# Login
+curl -X POST http://34.201.26.16:8001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "password": "Test123!"
+  }'
+```
 
 ---
 
@@ -793,9 +949,38 @@ sudo cat /var/log/user-data-complete.log
 
 ## 📚 Additional Documentation
 
+### Phase 1 Documentation
 - [Database Decision](docs/database_decision.md) - PostgreSQL vs MongoDB analysis
 - [Cost Analysis](docs/cost_analysis.md) - Detailed cost breakdown and optimization
 - [Operations Guide](docs/operations.md) - Day-to-day operational procedures
+
+### Phase 2 Documentation
+- [Phase 2 Overview](docs/phase2_overview.md) - Architecture and design decisions
+- [API Contracts](docs/api_contracts_phase2.md) - Detailed API specifications
+- [Complete API Reference](docs/ALL_APIS_REFERENCE.md) - All endpoints with examples
+- [Kafka Contracts](docs/kafka_contracts_phase2.md) - Message schemas and topics
+- [Deployment Guide](docs/deployment_phase2.md) - Step-by-step deployment instructions
+- [Testing Checklist](docs/phase2_testing_checklist.md) - Comprehensive testing guide
+
+---
+
+## 🎯 Project Milestones
+
+- ✅ **Phase 1 (Nov 2025)**: Infrastructure as Code
+  - VPC with public/private subnets
+  - EC2 instances for Nginx, apps, and Kafka
+  - RDS PostgreSQL with schema isolation
+  - S3 buckets for object storage
+  - Security groups and network policies
+  
+- ✅ **Phase 2 (Dec 2025)**: Microservices Deployment
+  - 4 microservices implemented (User-Mgmt, Chat, Document, Quiz)
+  - Docker containerization with multi-stage builds
+  - Docker Hub image registry
+  - Production deployment on AWS EC2
+  - Database connections with SSL/TLS
+  - Health checks and monitoring
+  - Complete API documentation
 
 ---
 
